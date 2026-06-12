@@ -1,46 +1,129 @@
-# Getting Started with Create React App
+# 📱 Smart Attendance Management System
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+[![Firebase hosting](https://img.shields.io/badge/Firebase-Hosting-FFCA28?logo=firebase&logoColor=white)](https://smart-attendance-2026-a2419.web.app)
+[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](#)
+[![TypeScript](https://img.shields.io/badge/TypeScript-4.9-3178C6?logo=typescript&logoColor=white)](#)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?logo=tailwind-css&logoColor=white)](#)
+[![Vertex AI](https://img.shields.io/badge/Vertex--AI-Gemini-4285F4?logo=google-cloud&logoColor=white)](#)
 
-## Available Scripts
+A complete, production-ready final-year CSE project. **Smart Attendance Management System** is a modern, web-based platform that automates attendance tracking through time-bound QR code check-ins and provides dynamic compliance insights using Google Cloud's **Vertex AI Gemini API**.
 
-In the project directory, you can run:
+🔗 **Live Deployment URL:** [https://smart-attendance-2026-a2419.web.app](https://smart-attendance-2026-a2419.web.app)
 
-### `npm start`
+---
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## 🌟 Core Features
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+### 🔐 1. Role-Based Access Control
+* **Admin Portal:** Manage user permissions and toggle registry roles between Student, Faculty, and Administrator.
+* **Faculty Dashboard:** Manage courses, enroll students, and review live attendance logs.
+* **Student Interface:** Review courses, monitor attendance percentages, and download compliance audits.
 
-### `npm test`
+### 📱 2. Time-Bound Dynamic QR Code Check-Ins
+* Faculty can initiate a session generating a unique, secure QR code token expiring in 10 minutes.
+* Students scan the QR code with their mobile cameras inside the web portal to check in.
+* **Robust Fallback:** If camera access is unavailable, students can manually key in the session code.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### ✍️ 3. Live Attendance Grid & Override
+* Real-time student check-in lists powered by Firestore WebSockets.
+* Instructors can manually toggle records between **Present**, **Absent**, and **Late** to correct entry errors.
 
-### `npm run build`
+### 🤖 4. AI-Powered Monthly Reports
+* Integrated with **Vertex AI Gemini API** via Firebase Cloud Functions.
+* Generates a monthly academic evaluation analyzing check-in trends and compliance actions (identifying records dropping below the 75% threshold).
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 📊 5. Visual Dashboard Stats
+* Course average and individual attendance rate indicators rendered through responsive **Recharts** graphs.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 🏗️ System Architecture
 
-### `npm run eject`
+```
+                    +------------------------------------+
+                    |            Presentation            |
+                    |      React 18 + TS + Tailwind      |
+                    +---------+--------------------+-----+
+                              |                    |
+                              | Authentication     | Sync Data
+                              v                    v
+                    +---------+----+      +--------+-----+
+                    |  Firebase    |      |  Cloud       |
+                    |  Auth        |      |  Firestore   |
+                    +--------------+      +---+----------+
+                                              |
+                                              | GCF Execution
+                                              v
+                                          +---+----------+
+                                          |  Firebase    |
+                                          |  Functions   |
+                                          +---+----------+
+                                              |
+                                              | API Call
+                                              v
+                                          +---+----------+
+                                          |  Vertex AI   |
+                                          |  (Gemini)    |
+                                          +--------------+
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+---
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 💻 Running Locally
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+### Prerequisites
+* Node.js (version 18 or above)
+* npm
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+### Step 1: Install Dependencies
+Open terminal in the project directory and install the packages:
+```bash
+npm install
+```
 
-## Learn More
+### Step 2: Launch Dev Server
+Launch the React application:
+```bash
+npm start
+```
+The application will start on **`http://localhost:3000`**.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Step 3: Run Functions & Emulators (Optional)
+If you want to run the Firebase local backend emulators for testing Firestore and Cloud Functions locally:
+```bash
+# Install Firebase CLI globally
+npm install -g firebase-tools
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+# Start the local emulator suite
+firebase emulators:start
+```
+
+---
+
+## 🔒 Security Configuration
+* **Firestore Security Rules:** Restricted access based on validated Auth tokens and role documents. Students are restricted to updating only their own attendance ticket status during active sessions.
+* **API Key Safety:** Vertex AI client credentials and prompt parameters are stored securely inside GCF, preventing key exposure on client browsers.
+
+---
+
+## 📂 Project Structure
+
+```
+smart-attendance/
+├── build/                    # Compiled React distribution
+├── public/                   # Static browser files
+├── src/
+│   ├── components/           # Navbar, Protected Routing guards
+│   ├── context/              # Authentication session controller
+│   ├── pages/                # Login, Dashboard, Classes, Scanners, Reports
+│   ├── firebase.ts           # Firebase connection configuration
+│   └── App.tsx               # Route declarations
+├── functions/                # Serverless Node.js Cloud Functions (Vertex AI)
+├── firestore.rules           # Security rules configuration
+└── tailwind.config.js        # Global layout styling configurations
+```
+
+---
+
+## 📝 Project Documentation & Viva Q&A
+A comprehensive 12-section project documentation manual containing database collections, architecture maps, and **25 Viva Q&A questions** commonly asked by college evaluators is available in the **[DOCUMENTATION.md](./DOCUMENTATION.md)** file.
