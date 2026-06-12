@@ -1,0 +1,62 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // User profile helper checks
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    
+    function isAdmin() {
+      return isSignedIn() && getUserRole() == 'admin';
+    }
+    
+    function isFaculty() {
+      return isSignedIn() && getUserRole() == 'faculty';
+    }
+
+    // 1. Users collection
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create, update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    // 2. Classes collection
+    match /classes/{classId} {
+      allow read: if isSignedIn();
+      allow create: if isFaculty() || isAdmin();
+      allow update: if isFaculty() || isAdmin(); // faculty updates studentIds
+      allow delete: if isFaculty() || isAdmin();
+    }
+    
+    // 3. Attendance Sessions collection
+    match /attendance_sessions/{sessionId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isFaculty() || isAdmin();
+    }
+    
+    // 4. Attendance Records collection
+    match /attendance_records/{recordId} {
+      allow read: if isSignedIn();
+      // Student can update their own pre-initialized record if they scan the correct session
+      allow create: if isFaculty() || isAdmin();
+      allow update: if isFaculty() || isAdmin() || (isSignedIn() && request.resource.data.studentId == request.auth.uid);
+      allow delete: if isFaculty() || isAdmin();
+    }
+    
+    // 5. AI Summaries collection
+    match /ai_summaries/{summaryId} {
+      allow read: if isSignedIn() && (resource.data.studentId == request.auth.uid || isFaculty() || isAdmin());
+      allow write: if isAdmin() || isFaculty();
+    }
+  }
+}
