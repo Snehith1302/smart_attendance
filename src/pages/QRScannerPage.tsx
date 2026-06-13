@@ -19,8 +19,6 @@ import {
   Keyboard, 
   CheckCircle, 
   AlertTriangle, 
-  X, 
-  RefreshCw,
   Sparkles
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -74,19 +72,33 @@ const QRScannerPage: React.FC = () => {
     setErrorMessage("");
 
     try {
-      // Find session with token
-      const sessionQuery = query(
-        collection(db, "attendance_sessions"),
-        where("qrCodeToken", "==", token),
-        where("status", "==", "active")
-      );
-      const sessionSnap = await getDocs(sessionQuery);
+      // Find session with token (either qrCodeToken from QR code or short code from manual entry)
+      let sessionDoc;
+      if (token.startsWith("session_")) {
+        const sessionQuery = query(
+          collection(db, "attendance_sessions"),
+          where("qrCodeToken", "==", token),
+          where("status", "==", "active")
+        );
+        const sessionSnap = await getDocs(sessionQuery);
+        if (!sessionSnap.empty) {
+          sessionDoc = sessionSnap.docs[0];
+        }
+      } else {
+        const activeSessionsQuery = query(
+          collection(db, "attendance_sessions"),
+          where("status", "==", "active")
+        );
+        const activeSessionsSnap = await getDocs(activeSessionsQuery);
+        sessionDoc = activeSessionsSnap.docs.find(doc => 
+          doc.id.toLowerCase().startsWith(token.toLowerCase())
+        );
+      }
 
-      if (sessionSnap.empty) {
+      if (!sessionDoc) {
         throw new Error("Invalid or expired QR code session. Please verify with your faculty.");
       }
 
-      const sessionDoc = sessionSnap.docs[0];
       const sessionId = sessionDoc.id;
       const sessionData = sessionDoc.data();
 
@@ -209,7 +221,7 @@ const QRScannerPage: React.FC = () => {
                     type="text"
                     value={manualCode}
                     onChange={(e) => setManualCode(e.target.value)}
-                    placeholder="e.g. session_classId_1718000000"
+                    placeholder="e.g. 8-digit session code"
                     className="w-full bg-slate-900/60 border border-slate-800 focus:border-indigo-500 rounded-2xl px-4 py-3 text-sm text-slate-100 placeholder-slate-500 outline-none transition-all text-center tracking-widest font-mono"
                     required
                   />
